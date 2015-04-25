@@ -6028,7 +6028,7 @@ exports.UNZIP = 7;
 function Zlib(mode) {
   if (mode < exports.DEFLATE || mode > exports.UNZIP)
     throw new TypeError("Bad argument");
-    
+
   this.mode = mode;
   this.init_done = false;
   this.write_in_progress = false;
@@ -6046,18 +6046,18 @@ Zlib.prototype.init = function(windowBits, level, memLevel, strategy, dictionary
   this.memLevel = memLevel;
   this.strategy = strategy;
   // dictionary not supported.
-  
+
   if (this.mode === exports.GZIP || this.mode === exports.GUNZIP)
     this.windowBits += 16;
-    
+
   if (this.mode === exports.UNZIP)
     this.windowBits += 32;
-    
+
   if (this.mode === exports.DEFLATERAW || this.mode === exports.INFLATERAW)
     this.windowBits = -this.windowBits;
-    
+
   this.strm = new zstream();
-  
+
   switch (this.mode) {
     case exports.DEFLATE:
     case exports.GZIP:
@@ -6083,12 +6083,12 @@ Zlib.prototype.init = function(windowBits, level, memLevel, strategy, dictionary
     default:
       throw new Error("Unknown mode " + this.mode);
   }
-  
+
   if (status !== exports.Z_OK) {
     this._error(status);
     return;
   }
-  
+
   this.write_in_progress = false;
   this.init_done = true;
 };
@@ -6100,31 +6100,31 @@ Zlib.prototype.params = function() {
 Zlib.prototype._writeCheck = function() {
   if (!this.init_done)
     throw new Error("write before init");
-    
+
   if (this.mode === exports.NONE)
     throw new Error("already finalized");
-    
+
   if (this.write_in_progress)
     throw new Error("write already in progress");
-    
+
   if (this.pending_close)
     throw new Error("close is pending");
 };
 
-Zlib.prototype.write = function(flush, input, in_off, in_len, out, out_off, out_len) {    
+Zlib.prototype.write = function(flush, input, in_off, in_len, out, out_off, out_len) {
   this._writeCheck();
   this.write_in_progress = true;
-  
+
   var self = this;
   process.nextTick(function() {
     self.write_in_progress = false;
     var res = self._write(flush, input, in_off, in_len, out, out_off, out_len);
     self.callback(res[0], res[1]);
-    
+
     if (self.pending_close)
       self.close();
   });
-  
+
   return this;
 };
 
@@ -6142,7 +6142,7 @@ Zlib.prototype.writeSync = function(flush, input, in_off, in_len, out, out_off, 
 
 Zlib.prototype._write = function(flush, input, in_off, in_len, out, out_off, out_len) {
   this.write_in_progress = true;
-  
+
   if (flush !== exports.Z_NO_FLUSH &&
       flush !== exports.Z_PARTIAL_FLUSH &&
       flush !== exports.Z_SYNC_FLUSH &&
@@ -6151,18 +6151,18 @@ Zlib.prototype._write = function(flush, input, in_off, in_len, out, out_off, out
       flush !== exports.Z_BLOCK) {
     throw new Error("Invalid flush value");
   }
-  
+
   if (input == null) {
     input = new Buffer(0);
     in_len = 0;
     in_off = 0;
   }
-  
+
   if (out._set)
     out.set = out._set;
   else
     out.set = bufferSet;
-  
+
   var strm = this.strm;
   strm.avail_in = in_len;
   strm.input = input;
@@ -6170,7 +6170,7 @@ Zlib.prototype._write = function(flush, input, in_off, in_len, out, out_off, out
   strm.avail_out = out_len;
   strm.output = out;
   strm.next_out = out_off;
-  
+
   switch (this.mode) {
     case exports.DEFLATE:
     case exports.GZIP:
@@ -6186,11 +6186,11 @@ Zlib.prototype._write = function(flush, input, in_off, in_len, out, out_off, out
     default:
       throw new Error("Unknown mode " + this.mode);
   }
-  
+
   if (status !== exports.Z_STREAM_END && status !== exports.Z_OK) {
     this._error(status);
   }
-  
+
   this.write_in_progress = false;
   return [strm.avail_in, strm.avail_out];
 };
@@ -6200,15 +6200,15 @@ Zlib.prototype.close = function() {
     this.pending_close = true;
     return;
   }
-  
+
   this.pending_close = false;
-  
+
   if (this.mode === exports.DEFLATE || this.mode === exports.GZIP || this.mode === exports.DEFLATERAW) {
     zlib_deflate.deflateEnd(this.strm);
   } else {
     zlib_inflate.inflateEnd(this.strm);
   }
-  
+
   this.mode = exports.NONE;
 };
 
@@ -6223,7 +6223,7 @@ Zlib.prototype.reset = function() {
       var status = zlib_inflate.inflateReset(this.strm);
       break;
   }
-  
+
   if (status !== exports.Z_OK) {
     this._error(status);
   }
@@ -6231,7 +6231,7 @@ Zlib.prototype.reset = function() {
 
 Zlib.prototype._error = function(status) {
   this.onerror(msg[status] + ': ' + this.strm.msg, status);
-  
+
   this.write_in_progress = false;
   if (this.pending_close)
     this.close();
@@ -25132,12 +25132,12 @@ By Devon Govett
  * An implementation of Ruby's string.succ method.
  * By Devon Govett
  *
- * Returns the successor to str. The successor is calculated by incrementing characters starting 
+ * Returns the successor to str. The successor is calculated by incrementing characters starting
  * from the rightmost alphanumeric (or the rightmost character if there are no alphanumerics) in the
  * string. Incrementing a digit always results in another digit, and incrementing a letter results in
  * another letter of the same case.
  *
- * If the increment generates a carry, the character to the left of it is incremented. This 
+ * If the increment generates a carry, the character to the left of it is incremented. This
  * process repeats until there is no carry, adding an additional character if necessary.
  *
  * succ("abcd")      == "abce"
@@ -26455,7 +26455,7 @@ By Devon Govett
       this._fontSize = 12;
       this._font = null;
       this._registeredFonts = {};
-      
+
     },
     font: function(src, family, size) {
       var cacheKey, font, id, _ref;
@@ -28258,20 +28258,20 @@ module.exports={"data":[1961,1969,1977,1985,2025,2033,2041,2049,2057,2065,2073,2
 /*
 # MIT LICENSE
 # Copyright (c) 2011 Devon Govett
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this 
-# software and associated documentation files (the "Software"), to deal in the Software 
-# without restriction, including without limitation the rights to use, copy, modify, merge, 
-# publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons 
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify, merge,
+# publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
 # to whom the Software is furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in all copies or 
+#
+# The above copyright notice and this permission notice shall be included in all copies or
 # substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
-# BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
-# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+# BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
@@ -28970,7 +28970,7 @@ DocMeasure.prototype.measureNode = function(node) {
 				margin = convertMargin(flattenedStyleArray.margin);
 			}
 		}
-		
+
 		margin = processSingleMargins(node, margin);
 
 		if(node.margin){
@@ -29185,7 +29185,8 @@ DocMeasure.prototype.measureTable = function(node) {
 			paddingLeft: function(i, node) { return 4; }, //i && 4 || 0; },
 			paddingRight: function(i, node) { return 4; }, //(i < node.table.widths.length - 1) ? 4 : 0; },
 			paddingTop: function(i, node) { return 2; },
-			paddingBottom: function(i, node) { return 2; }
+			paddingBottom: function(i, node) { return 2; },
+      defaultBorder: true
 		};
 
 		return pack(defaultLayout, layout);
@@ -29359,9 +29360,9 @@ function DocumentContext(pageSize, pageMargins) {
 	this.snapshots = [];
 
 	this.endingCell = null;
-    
+
   this.tracker = new TraversalTracker();
-    
+
 	this.addPage(pageSize);
 }
 
@@ -29475,9 +29476,9 @@ function pageOrientation(pageOrientationString, currentPageOrientation){
 }
 
 var getPageSize = function (currentPage, newPageOrientation) {
-	
+
 	newPageOrientation = pageOrientation(newPageOrientation, currentPage.pageSize.orientation);
-	
+
 	if(newPageOrientation !== currentPage.pageSize.orientation) {
 		return {
 			orientation: newPageOrientation,
@@ -29491,7 +29492,7 @@ var getPageSize = function (currentPage, newPageOrientation) {
 			height: currentPage.pageSize.height
 		};
 	}
-	
+
 };
 
 
@@ -29525,7 +29526,7 @@ DocumentContext.prototype.addPage = function(pageSize) {
 	this.initializePage();
 
 	this.tracker.emit('pageAdded');
-    
+
 	return page;
 };
 
@@ -30090,9 +30091,9 @@ LayoutBuilder.prototype.tryLayoutDocument = function (docStructure, fontProvider
 
 LayoutBuilder.prototype.addBackground = function(background) {
     var backgroundGetter = isFunction(background) ? background : function() { return background; };
-    
+
     var pageBackground = backgroundGetter(this.writer.context().page + 1);
-    
+
     if (pageBackground) {
       var pageSize = this.writer.context().getCurrentPage().pageSize;
       this.writer.beginUnbreakableBlock(pageSize.width, pageSize.height);
@@ -30104,7 +30105,7 @@ LayoutBuilder.prototype.addBackground = function(background) {
 LayoutBuilder.prototype.addStaticRepeatable = function(node, x, y, width, height) {
   var pages = this.writer.context().pages;
   this.writer.context().page = 0;
-  
+
   this.writer.beginUnbreakableBlock(width, height);
   this.processNode(this.docMeasure.measureDocument(node));
   var repeatable = this.writer.currentBlockToRepeatable();
@@ -30144,7 +30145,7 @@ LayoutBuilder.prototype.addHeadersAndFooters = function(header, footer) {
       height: pageMargins.top
     };
   };
-  
+
   var footerSizeFct = function (pageSize, pageMargins) {
     return {
       x: 0,
@@ -30153,7 +30154,7 @@ LayoutBuilder.prototype.addHeadersAndFooters = function(header, footer) {
       height: pageMargins.bottom
     };
   };
-  
+
   if(isFunction(header)) {
     this.addDynamicRepeatable(header, headerSizeFct);
   } else if(header) {
@@ -30638,9 +30639,9 @@ PageElementWriter.prototype.addFragment = function(fragment, useBlockXOffset, us
 };
 
 PageElementWriter.prototype.moveToNextPage = function(pageOrientation) {
-	
+
 	var nextPage = this.writer.context.moveToNextPage(pageOrientation);
-	
+
   if (nextPage.newPageCreated) {
 		this.repeatables.forEach(function(rep) {
 			this.writer.addFragment(rep, true);
@@ -31861,7 +31862,7 @@ function generateFrame(data, options) {
 //   modules, so it is better not to alter this value unless you know what
 //   you're doing.
 function buildCanvas(data, options) {
-   
+
     var canvas = [];
     var background = data.background || '#fff';
     var foreground = data.foreground || '#000';
@@ -31870,12 +31871,12 @@ function buildCanvas(data, options) {
 	var n = matrix.length;
 	var modSize = Math.floor( options.fit ? options.fit/n : 5 );
 	var size = n * modSize;
-	
+
     canvas.push({
       type: 'rect',
       x: 0, y: 0, w: size, h: size, lineWidth: 0, color: background
     });
-    
+
 	for (var i = 0; i < n; ++i) {
 		for (var j = 0; j < n; ++j) {
             if(matrix[i][j]) {
@@ -31891,12 +31892,12 @@ function buildCanvas(data, options) {
             }
         }
     }
-    
+
     return {
         canvas: canvas,
         size: size
     };
-		
+
 }
 
 function measure(node) {
@@ -32163,6 +32164,9 @@ TableProcessor.prototype.beginTable = function(writer) {
     writer.beginUnbreakableBlock();
   }
 
+  // update the border properties of all cells before drawing any lines
+  prepareCellBorders(this.tableNode.table.body);
+
   this.drawHorizontalLine(0, writer);
 
   function getTableInnerContentWidth() {
@@ -32193,6 +32197,60 @@ TableProcessor.prototype.beginTable = function(writer) {
 
     return rsd;
   }
+
+  // Iterate through all cells. If the current cell is the start of a
+  // rowSpan/colSpan, update the border property of the cells on its
+  // bottom/right accordingly. This is needed since each iteration of the
+  // line-drawing loops draws lines for a single cell, not for an entire
+  // rowSpan/colSpan.
+  function prepareCellBorders(body) {
+    for (var rowIndex = 0; rowIndex < body.length; rowIndex++) {
+      var row = body[rowIndex];
+
+      for (var colIndex = 0; colIndex < row.length; colIndex++) {
+        var cell = row[colIndex];
+
+        if (cell.border) {
+          var rowSpan = cell.rowSpan || 1;
+          var colSpan = cell.colSpan || 1;
+
+          for (var rowOffset = 0; rowOffset < rowSpan; rowOffset++) {
+            // set left border
+            if (cell.border[0] && rowOffset > 0) {
+              setBorder(rowIndex + rowOffset, colIndex, 0);
+            }
+
+            // set right border
+            if (cell.border[2]) {
+              setBorder(rowIndex + rowOffset, colIndex + colSpan - 1, 2);
+            }
+          }
+
+          for (var colOffset = 0; colOffset < colSpan; colOffset++) {
+            // set top border
+            if (cell.border[1] && rowOffset > 0) {
+              setBorder(rowIndex, colIndex + colOffset, 1);
+            }
+
+            // set bottom border; since each cell in the first row of a rowSpan
+            // has the rowSpan property (unlike colSpan), it can be more
+            // efficient to update only the one corresponding cell in the bottom
+            // row rather than all cells in the bottom row
+            if (cell.border[3]) {
+              setBorder(rowIndex + rowSpan - 1, colIndex + colOffset, 3);
+            }
+          }
+        }
+      }
+    }
+
+    // helper function to set the border for a given cell
+    function setBorder(rowIndex, colIndex, borderIndex) {
+      var cell = body[rowIndex][colIndex];
+      cell.border = cell.border || {};
+      cell.border[borderIndex] = true;
+    }
+  }
 };
 
 TableProcessor.prototype.onRowBreak = function(rowIndex, writer) {
@@ -32200,9 +32258,9 @@ TableProcessor.prototype.onRowBreak = function(rowIndex, writer) {
   return function() {
     //console.log('moving by : ', topLineWidth, rowPaddingTop);
     var offset = self.rowPaddingTop + (!self.headerRows ? self.topLineWidth : 0);
-    writer.context().moveDown(offset);  
+    writer.context().moveDown(offset);
   };
-  
+
 };
 
 TableProcessor.prototype.beginRow = function(rowIndex, writer) {
@@ -32210,7 +32268,7 @@ TableProcessor.prototype.beginRow = function(rowIndex, writer) {
   this.rowPaddingTop = this.layout.paddingTop(rowIndex, this.tableNode);
   this.bottomLineWidth = this.layout.hLineWidth(rowIndex+1, this.tableNode);
   this.rowPaddingBottom = this.layout.paddingBottom(rowIndex, this.tableNode);
-  
+
   this.rowCallback = this.onRowBreak(rowIndex, writer);
   writer.tracker.startTracking('pageChanged', this.rowCallback );
     if(this.dontBreakRows) {
@@ -32229,10 +32287,31 @@ TableProcessor.prototype.drawHorizontalLine = function(lineIndex, writer, overri
   if (lineWidth) {
     var offset = lineWidth / 2;
     var currentLine = null;
+    var body = this.tableNode.table.body;
 
     for(var i = 0, l = this.rowSpanData.length; i < l; i++) {
       var data = this.rowSpanData[i];
       var shouldDrawLine = !data.rowSpan;
+
+      // draw only if the current cell requires a top border or the cell in the
+      // row above requires a bottom border
+      if (shouldDrawLine && i < l - 1) {
+        var topBorder = false, bottomBorder = false;
+
+        // the current cell
+        if (lineIndex < body.length) {
+          var cell = body[lineIndex][i];
+          topBorder = cell.border ? cell.border[1] : this.layout.defaultBorder;
+        }
+
+        // the cell in the row above
+        if (lineIndex > 0) {
+          var cellAbove = body[lineIndex - 1][i];
+          bottomBorder = cellAbove.border ? cellAbove.border[3] : this.layout.defaultBorder;
+        }
+
+        shouldDrawLine = topBorder || bottomBorder;
+      }
 
       if (!currentLine && shouldDrawLine) {
         currentLine = { left: data.left, width: 0 };
@@ -32244,7 +32323,7 @@ TableProcessor.prototype.drawHorizontalLine = function(lineIndex, writer, overri
 
       var y = (overrideY || 0) + offset;
 
-      if (!shouldDrawLine || i === l - 1) {
+      if (!shouldDrawLine || i === l - 2) {
         if (currentLine) {
           writer.addVector({
             type: 'line',
@@ -32266,7 +32345,7 @@ TableProcessor.prototype.drawHorizontalLine = function(lineIndex, writer, overri
 
 TableProcessor.prototype.drawVerticalLine = function(x, y0, y1, vLineIndex, writer) {
   var width = this.layout.vLineWidth(vLineIndex, this.tableNode);
-  if (width === 0) return;  
+  if (width === 0) return;
   writer.addVector({
     type: 'line',
     x1: x + width/2,
@@ -32323,6 +32402,11 @@ TableProcessor.prototype.endRow = function(rowIndex, writer, pageBreaks) {
       var hzLineOffset =  rowBreakWithoutHeader ? 0 : this.topLineWidth;
       var y1 = ys[yi].y0;
       var y2 = ys[yi].y1;
+
+      if(willBreak) {
+        y2 = y2 + this.rowPaddingBottom;
+      }
+
       if (writer.context().page != ys[yi].page) {
         writer.context().page = ys[yi].page;
 
@@ -32332,10 +32416,21 @@ TableProcessor.prototype.endRow = function(rowIndex, writer, pageBreaks) {
       }
 
       for(i = 0, l = xs.length; i < l; i++) {
-        this.drawVerticalLine(xs[i].x, y1 - hzLineOffset, y2 + this.bottomLineWidth, xs[i].index, writer);
         if(i < l-1) {
           var colIndex = xs[i].index;
-          var fillColor=  this.tableNode.table.body[rowIndex][colIndex].fillColor;
+          var cell = this.tableNode.table.body[rowIndex][colIndex];
+
+          // draw left border
+          if ((cell.border && cell.border[0]) || (!cell.border && this.layout.defaultBorder)) {
+            this.drawVerticalLine(xs[i].x, y1 - hzLineOffset, y2 + this.bottomLineWidth, xs[i].index, writer);
+          }
+
+          // draw right border
+          if ((cell.border && cell.border[2]) || (!cell.border && this.layout.defaultBorder)) {
+            this.drawVerticalLine(xs[i+1].x, y1 - hzLineOffset, y2 + this.bottomLineWidth, xs[i].index, writer);
+          }
+
+          var fillColor = cell.fillColor;
           if(fillColor ) {
             var wBorder = this.layout.vLineWidth(colIndex, this.tableNode);
             var xf = xs[i].x+wBorder;
@@ -32353,10 +32448,10 @@ TableProcessor.prototype.endRow = function(rowIndex, writer, pageBreaks) {
         }
       }
 
-      if (willBreak) {
+      if (willBreak && this.layout.hLineWhenBroken !== false) {
         this.drawHorizontalLine(rowIndex + 1, writer, y2);
       }
-      if(rowBreakWithoutHeader) {
+      if(rowBreakWithoutHeader && this.layout.hLineWhenBroken !== false) {
         this.drawHorizontalLine(rowIndex, writer, y1);
       }
     }
@@ -32371,7 +32466,7 @@ TableProcessor.prototype.endRow = function(rowIndex, writer, pageBreaks) {
 
         // fix colSpans
         if (row[i].colSpan && row[i].colSpan > 1) {
-          for(var j = 1; j < row[i].colSpan; j++) {
+          for(var j = 1; j < row[i].rowSpan; j++) {
             this.tableNode.table.body[rowIndex + j][i]._colSpan = row[i].colSpan;
           }
         }
@@ -32389,12 +32484,13 @@ TableProcessor.prototype.endRow = function(rowIndex, writer, pageBreaks) {
     }
 
     if(this.dontBreakRows) {
-      writer.tracker.auto('pageChanged', 
+      writer.tracker.auto('pageChanged',
         function() {
           self.drawHorizontalLine(rowIndex, writer);
         },
         function() {
           writer.commitUnbreakableBlock();
+          self.drawHorizontalLine(rowIndex, writer);
         }
       );
     }
@@ -32452,11 +32548,11 @@ function groupDecorations(line) {
 			if(!curGroup || deco !== curGroup.decoration ||
 					style !== curGroup.decorationStyle || color !== curGroup.decorationColor ||
 					deco === 'lineThrough') {
-		
+
 				curGroup = {
 					line: line,
-					decoration: deco, 
-					decorationColor: color, 
+					decoration: deco,
+					decorationColor: color,
 					decorationStyle: style,
 					inlines: [ inline ]
 				};
@@ -32466,7 +32562,7 @@ function groupDecorations(line) {
 			}
 		}
 	}
-	
+
 	return groups;
 }
 
@@ -32493,9 +32589,9 @@ function drawDecoration(group, x, y, pdfKitDoc) {
 		ascent = biggerInline.font.ascender / 1000 * biggerInline.fontSize,
 		height = biggerInline.height,
 		descent = height - ascent;
-	
+
 	var lw = 0.5 + Math.floor(Math.max(biggerInline.fontSize - 8, 0) / 2) * 0.12;
-	
+
 	switch (group.decoration) {
 		case 'underline':
 			y += lineAscent + descent * 0.45;
@@ -32510,7 +32606,7 @@ function drawDecoration(group, x, y, pdfKitDoc) {
 			throw 'Unkown decoration : ' + group.decoration;
 	}
 	pdfKitDoc.save();
-	
+
 	if(group.decorationStyle === 'double') {
 		var gap = Math.max(0.5, lw*2);
 		pdfKitDoc	.fillColor(group.decorationColor)
@@ -32547,7 +32643,7 @@ function drawDecoration(group, x, y, pdfKitDoc) {
 				rwx += sh*6;
 			}
 		pdfKitDoc.stroke(group.decorationColor);
-		
+
 	} else {
 		pdfKitDoc	.fillColor(group.decorationColor)
 					.rect(x + firstInline.x, y-lw/2, totalWidth, lw)
