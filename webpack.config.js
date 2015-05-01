@@ -1,6 +1,6 @@
 var path = require('path');
 var StringReplacePlugin = require("string-replace-webpack-plugin");
-
+var webpack = require('webpack');
 
 module.exports = {
   entry: './src/browser-extensions/pdfMake.js',
@@ -28,6 +28,10 @@ module.exports = {
     ]
   },
   plugins: [
-    new StringReplacePlugin()
-  ]
+    new StringReplacePlugin(),
+    new webpack.IgnorePlugin(/lodash/)
+  ],
+  externals: {
+    'lodash': '_'
+  }
 };
