@@ -54,6 +54,11 @@ LayoutBuilder.prototype.registerTableLayouts = function (tableLayouts) {
 LayoutBuilder.prototype.layoutDocument = function (docStructure, fontProvider, styleDictionary, defaultStyle, background, header, footer, images, watermark, pageBreakBeforeFct) {
 
   function addPageBreaksIfNecessary(linearNodeList, pages) {
+
+		if(!isFunction(pageBreakBeforeFct)){
+			return false;
+		}
+
     linearNodeList = _.reject(linearNodeList, function(node){
       return _.isEmpty(node.positions);
     });
@@ -98,12 +103,6 @@ LayoutBuilder.prototype.layoutDocument = function (docStructure, fontProvider, s
         }
       }
     });
-  }
-
-  if(!isFunction(pageBreakBeforeFct)){
-    pageBreakBeforeFct = function(){
-      return false;
-    };
   }
 
   this.docMeasure = new DocMeasure(fontProvider, styleDictionary, defaultStyle, this.imageMeasure, this.tableLayouts, images);
@@ -270,10 +269,14 @@ function decorateNode(node){
   node.positions = [];
 
   _.each(node.canvas, function(vector){
-    var x = vector.x, y = vector.y;
+    var x = vector.x, y = vector.y, x1 = vector.x1, y1 = vector.y1, x2 = vector.x2, y2 = vector.y2;
     vector.resetXY = function(){
       vector.x = x;
       vector.y = y;
+			vector.x1 = x1;
+			vector.y1 = y1;
+			vector.x2 = x2;
+			vector.y2 = y2;
     };
   });
 
@@ -522,11 +525,16 @@ LayoutBuilder.prototype.processTable = function(tableNode) {
 // leafs (texts)
 LayoutBuilder.prototype.processLeaf = function(node) {
 	var line = this.buildNextLine(node);
+  var currentHeight = (line) ? line.getHeight() : 0;
+  var maxHeight = node.maxHeight || -1;
 
-	while (line) {
-		var positions = this.writer.addLine(line);
+  while (line && (maxHeight === -1 || currentHeight < maxHeight)) {
+    var positions = this.writer.addLine(line);
     node.positions.push(positions);
-		line = this.buildNextLine(node);
+    line = this.buildNextLine(node);
+    if (line) {
+      currentHeight += line.getHeight();
+    }
 	}
 };
 
@@ -540,6 +548,7 @@ LayoutBuilder.prototype.buildNextLine = function(textNode) {
 	}
 
 	line.lastLineInParagraph = textNode._inlines.length === 0;
+
 	return line;
 };
 

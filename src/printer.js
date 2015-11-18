@@ -52,6 +52,12 @@ function PdfPrinter(fontDescriptors) {
  * @example
  *
  * var docDefinition = {
+ * 	info: {
+ *		title: 'awesome Document',
+ *		author: 'john doe',
+ *		subject: 'subject of document',
+ *		keywords: 'keywords for document',
+ * 	},
  *	content: [
  *		'First paragraph',
  *		'Second paragraph, this time a little bit longer',
@@ -85,6 +91,18 @@ PdfPrinter.prototype.createPdfKitDocument = function(docDefinition, options) {
 	this.pdfKitDoc = new PdfKit({ size: [ pageSize.width, pageSize.height ], compress: false});
 	this.pdfKitDoc.info.Producer = 'pdfmake';
 	this.pdfKitDoc.info.Creator = 'pdfmake';
+	
+	// pdf kit maintains the uppercase fieldnames from pdf spec
+	// to keep the pdfmake api consistent, the info field are defined lowercase
+	if(docDefinition.info){
+		var info = docDefinition.info;
+		// check for falsey an set null, so that pdfkit always get either null or value
+		this.pdfKitDoc.info.Title = docDefinition.info.title ? docDefinition.info.title : null;
+		this.pdfKitDoc.info.Author = docDefinition.info.author ? docDefinition.info.author : null;
+		this.pdfKitDoc.info.Subject = docDefinition.info.subject ? docDefinition.info.subject : null;
+		this.pdfKitDoc.info.Keywords = docDefinition.info.keywords ? docDefinition.info.keywords : null;
+	}
+	
 	this.fontProvider = new FontProvider(this.fontDescriptors, this.pdfKitDoc);
 
   docDefinition.images = docDefinition.images || {};
@@ -104,20 +122,13 @@ PdfPrinter.prototype.createPdfKitDocument = function(docDefinition, options) {
 	renderPages(pages, this.fontProvider, this.pdfKitDoc);
 
 	if(options.autoPrint){
-        var jsRef = this.pdfKitDoc.ref({
-			S: 'JavaScript',
-			JS: new StringObject('this.print\\(true\\);')
-		});
-		var namesRef = this.pdfKitDoc.ref({
-			Names: [new StringObject('EmbeddedJS'), new PDFReference(this.pdfKitDoc, jsRef.id)],
-		});
-
-		jsRef.end();
-		namesRef.end();
-
-		this.pdfKitDoc._root.data.Names = {
-			JavaScript: new PDFReference(this.pdfKitDoc, namesRef.id)
-		};
+    var printActionRef = this.pdfKitDoc.ref({
+      Type: 'Action',
+      S: 'Named',
+      N: 'Print'
+    });
+    this.pdfKitDoc._root.data.OpenAction = printActionRef;
+    printActionRef.end();
 	}
 	return this.pdfKitDoc;
 };
@@ -249,6 +260,7 @@ function renderLine(line, x, y, pdfKitDoc) {
 	x = x || 0;
 	y = y || 0;
 
+	var lineHeight = line.getHeight();
 	var ascenderHeight = line.getAscenderHeight();
 
 	textDecorator.drawBackground(line, x, y, pdfKitDoc);
@@ -272,6 +284,11 @@ function renderLine(line, x, y, pdfKitDoc) {
         pdfKitDoc.addContent('<' + encoded.encodedText + '> Tj');
 
 		pdfKitDoc.addContent('ET');
+
+		if (inline.link) {
+			pdfKitDoc.link(x + inline.x, pdfKitDoc.page.height - y - lineHeight, inline.width, lineHeight, inline.link);
+		}
+
 		pdfKitDoc.restore();
 	}
 
